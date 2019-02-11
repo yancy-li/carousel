@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Carousel</title>
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script src="../../../../lib/ht.js"></script>
+    <script src="../../../../lib/ht-ui.js"></script>
+    <script src="../../../lib/ht-ui-carousel.js"></script>
+    <script>
+        function init() {
+            carousel = new ht.ui.Carousel();
+            carousel.add('1.png');            
+            carousel.add('2.png', 0);
+            carousel.add(new ht.ui.Button({text: '按钮', hoverBackground:'rgba(255, 0, 0, 0.5)', activeBackground: 'rgba(0, 255, 0, 0.5)'}));
+            carousel.add('3.png');
+            carousel.add(new ht.ui.drawable.ColorDrawable('yellow'));
+
+            carousel.addToDOM();
+
+            carousel.on('clickIndicator', function(e) {
+                if (e.index >= 0)
+                    carousel.setCurrentIndex(e.index);
+            });
+            
+            carousel.addToDOM(window, {
+                x: 10,
+                y: 10,
+                width: 400,
+                height: 200
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+
+</body>
+
+</html>
