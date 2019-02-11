@@ -6,10 +6,10 @@
 
 ## 打包工程
 
-    // 打包 debug 版本，在 build 目录中生成 ht-ui-palette-debug.js
+    // 打包 debug 版本，在 build 目录中生成 ht-ui-carousel-debug.js
     grunt default
 
-    // 打包 release 版，在 release 目录中生成 ht-ui-palette.zip
+    // 打包 release 版，在 release 目录中生成 ht-ui-carousel.zip
     // 压缩文件内包含类库、API 文档、使用手册
     grunt release
 
