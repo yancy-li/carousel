@@ -7,7 +7,7 @@ ui.Carousel = function () {
     ht.ui.Carousel.superClass.constructor.call(this);
 };
 
-def(ui.Carousel, ht.ui.ViewGroup, {
+def('ht.ui.Carousel', ht.ui.ViewGroup, {
 
     // 样式属性
     ui_ac: [
