@@ -78,14 +78,27 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
 
         delete self._autoplayTimer;
     },
-    resumeAutoplay: function() {
+    resumeAutoplay: function(fromInteractor) {
         var self = this;
-        self._pauseAutoplay = false;
+        if (fromInteractor) {
+            if (self._pauseAutoplay === 'fromInteractor') {
+                self._pauseAutoplay = false;
+            }
+        }
+        else {
+            self._pauseAutoplay = false;
+        }
         self.iv();
     },
-    pauseAutoplay: function() {
+    pauseAutoplay: function(fromInteractor) {
         var self = this;
-        self._pauseAutoplay = true;
+        if (fromInteractor) {
+            self._pauseAutoplay = 'fromInteractor';    
+        }
+        else {
+            self._pauseAutoplay = true;
+        }
+        
         self.iv();
     },
     stopAnimation: function() {

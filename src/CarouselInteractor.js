@@ -136,7 +136,8 @@ def(ui.CarouselInteractor, ui.Interactor, {
         carousel.setCurrentController(NULL);
         carousel.setCurrentControllerState(NULL);
 
-        carousel.resumeAutoplay();
+        
+        carousel.resumeAutoplay(true);
 
         carousel._mouseenter = false;
     },
@@ -145,6 +146,7 @@ def(ui.CarouselInteractor, ui.Interactor, {
             carousel = self.getComponent();
         
         carousel._mouseenter = true;
-        carousel.pauseAutoplay();
+        if (!carousel._pauseAutoplay)
+            carousel.pauseAutoplay(true);
     }
 });
