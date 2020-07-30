@@ -493,7 +493,7 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
     getSerializableProperties: function () {
         var parentProperties = ui.Carousel.superClass.getSerializableProperties.call(this);
 
-        return addMethod(parentProperties, {
+        return Default.addMethod(parentProperties, {
             autoplay: 1,
             interval: 1,
             'is:loop': 1,
