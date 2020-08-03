@@ -40,6 +40,13 @@ def(ui.CarouselInteractor, ui.Interactor, {
 
         var controller = comp.controllerHitTest(e);
         comp.setCurrentController(controller);
+        if (controller || comp.indicatorHitTest(e)) {
+            comp.getContentCanvas().style.pointerEvents = 'auto';
+        }
+        else {
+            comp.getContentCanvas().style.pointerEvents = 'none';
+        }
+        
         if (controller) {
             if (self._touchstart) {
                 comp.setCurrentControllerState('active');
