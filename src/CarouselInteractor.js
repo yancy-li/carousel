@@ -27,7 +27,7 @@ def(ui.CarouselInteractor, ui.Interactor, {
                 comp.setCurrentController(controller);
                 if (controller) {
                     comp.setCurrentControllerState('active');
-                    startDragging(self);
+                    startDragging(self, e);
                     self._touchstart = true;
                 }
             }
