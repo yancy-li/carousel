@@ -515,6 +515,13 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
             activePrev: 1,
             activePrevDrawable: 1,
             controllerVisible: 1,
+            controller: 1,
+            controllerDrawable: 1,
+            hoverController: 1,
+            hoverControllerDrawable: 1,
+            activeController: 1,
+            activeControllerDrawable: 1,
+            'is:autoHideController': 1,
             controllerWidth: 1,
             controllerHeight: 1
         });
