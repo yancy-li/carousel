@@ -1,112 +1,126 @@
 var Default = ht.Default,
-    def = Default.def,
-    ui = ht.ui,
-    startDragging = Default.startDragging,
-    NULL = null,
-    isDragging = Default.isDragging;
-Default.setImage('ui_carousel_indicator', {
-  width: 16,
-  height: 16,
-  comps: [{
-    type: 'circle',
-    rect: [17, 1, 1],
-    relative: true,
-    background: '#EBEBEB'
-  }]
-});
-Default.setImage('ui_carousel_activeIndicator', {
-  width: 16,
-  height: 16,
-  comps: [{
-    type: 'circle',
-    rect: [17, 1, 1],
-    relative: true,
-    background: '#3399ff'
-  }]
-})
-Default.setImage('ui_carousel_controller', {
-  "width": 20,
+  def = Default.def,
+  ui = ht.ui,
+  startDragging = Default.startDragging,
+  NULL = null,
+  isDragging = Default.isDragging;
+Default.setImage('ui_carousel_controller_v5', {
+  "width": 24,
   "height": 40,
-  "comps": [{
-      "type": "rect",
-      "background": "rgba(0,0,0,0.20)",
+  "comps": [
+    {
+      "type": "roundRect",
+      "background": "rgb(0,0,0)",
+      "borderColor": "#979797",
+      "cornerRadius": 12,
+      "opacity": 0.1,
       "rect": [
         0,
         0,
-        20,
+        24,
         40
       ]
     },
     {
       "type": "shape",
       "borderWidth": 1,
-      "borderColor": "rgba(255, 255, 255, 0.4)",
-      "rotation": 3.14159,
+      "borderColor": "rgb(255,255,255)",
+      "borderCap": "round",
+      "pixelPerfect": true,
+      "shadow": true,
+      "shadowColor": "rgb(255,255,255)",
+      "shadowBlur": 2,
+      "shadowOffsetX": 0,
+      "shadowOffsetY": 2,
       "points": [
-        5.98486,
-        10.84151,
-        14.01514,
-        20.09022,
-        6.14152,
-        29.15849
+        14.99997,
+        26,
+        9,
+        19.99999,
+        15,
+        14,
+        15,
+        14
       ]
     }
   ]
 })
-Default.setImage('ui_carousel_hoverController', {
-  "width": 20,
+Default.setImage('ui_carousel_hoverController_v5', {
+  "width": 24,
   "height": 40,
-  "comps": [{
-      "type": "rect",
-      "background": "rgba(0,0,0,0.40)",
+  "comps": [
+    {
+      "type": "roundRect",
+      "background": "rgba(0,0,0,0.16)",
+      "borderColor": "#979797",
+      "cornerRadius": 12,
       "rect": [
         0,
         0,
-        20,
+        24,
         40
       ]
     },
     {
       "type": "shape",
       "borderWidth": 1,
-      "borderColor": "rgba(255, 255, 255, 0.4)",
-      "rotation": 3.14159,
+      "borderColor": "rgb(255,255,255)",
+      "borderCap": "round",
+      "pixelPerfect": true,
+      "shadow": true,
+      "shadowColor": "rgb(255,255,255)",
+      "shadowBlur": 2,
+      "shadowOffsetX": 0,
+      "shadowOffsetY": 2,
       "points": [
-        5.98486,
-        10.84151,
-        14.01514,
-        20.09022,
-        6.14152,
-        29.15849
+        14.99997,
+        26,
+        9,
+        19.99999,
+        15,
+        14,
+        15,
+        14
       ]
     }
   ]
 })
-Default.setImage('ui_carousel_activeController', {
-  "width": 20,
+Default.setImage('ui_carousel_activeController_v5', {
+  "width": 24,
   "height": 40,
-  "comps": [{
-      "type": "rect",
-      "background": "rgba(0,0,0,0.60)",
+  "comps": [
+    {
+      "type": "roundRect",
+      "background": "rgba(0,0,0,0.16)",
+      "borderColor": "#979797",
+      "cornerRadius": 12,
       "rect": [
         0,
         0,
-        20,
+        24,
         40
       ]
     },
     {
       "type": "shape",
       "borderWidth": 1,
-      "borderColor": "rgba(255, 255, 255, 0.4)",
-      "rotation": 3.14159,
+      "borderColor": "rgb(255,255,255)",
+      "borderCap": "round",
+      "pixelPerfect": true,
+      "shadow": true,
+      "shadowColor": "rgb(255,255,255)",
+      "shadowBlur": 2,
+      "shadowOffsetX": 0,
+      "shadowOffsetY": 2,
       "points": [
-        5.98486,
-        10.84151,
-        14.01514,
-        20.09022,
-        6.14152,
-        29.15849
+        14.99997,
+        26,
+        9,
+        19.99999,
+        15,
+        14,
+        15,
+        14
       ]
     }
   ]

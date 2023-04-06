@@ -17,26 +17,32 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
         'drawable:controller',
         'drawable:hoverController',
         'drawable:activeController',
-        'is:controllerVisible', 'controllerWidth', 'controllerHeight', 'is:autoHideController'
+        'is:controllerVisible', 'controllerWidth', 'controllerHeight', 'is:autoHideController',
+        "is:indicatorOutside", "is:card", "is:hoverTrigger", "is:pauseOnHover",
     ],
     ms_ac: ['currentController', 'currentControllerState'],
 
     __autoplay: 500,
-    __interval: 4000, // 停留 5s
+    __interval: 3000, // 停留 5s
     __loop: true,
-    __indicatorWidth: 5,
-    __indicatorHeight: 5,
-    __indicatorGap: 10,
-    __indicator: ['ht.ui.drawable.ImageDrawable', 'ui_carousel_indicator', 'fill'],
-    __activeIndicator: ['ht.ui.drawable.ImageDrawable', 'ui_carousel_activeIndicator', 'fill'],
+    __indicatorWidth: 30,
+    __indicatorHeight: 2,
+    __indicatorGap: 2,
+    __indicator: ['ht.ui.drawable.ColorDrawable', '#F0F2F5', 4],
+    __activeIndicator: ['ht.ui.drawable.ColorDrawable', '#A8ABB2', 4],
     __indicatorVisible: true,
     __controllerVisible: true,
-    __controllerWidth: 20,
+    __controllerWidth: 24,
     __controllerHeight: 40,
-    __controller: 'ui_carousel_controller',
-    __hoverController: 'ui_carousel_hoverController',
-    __activeController: 'ui_carousel_activeController',
+    __controller: 'ui_carousel_controller_v5',
+    __hoverController: 'ui_carousel_hoverController_v5',
+    __activeController: 'ui_carousel_activeController_v5',
     __autoHideController: true,
+
+    __indicatorOutside: false,
+    __card: false,
+    __hoverTrigger: true,
+    __pauseOnHover: true,
 
     initView: function () {
         var self = this;
@@ -52,18 +58,29 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
     onPropertyChanged: function (e) {
         var self = this;
         ui.Carousel.superClass.onPropertyChanged.call(self, e);
-        var property = e.property;
-        if (property === 'children') {
-            self.stopAnimation();
-
-            self.setCurrentIndex(0);
+        switch (e.property) {
+            case "children": {
+                self.stopAnimation();
+                self.setCurrentIndex(0);
+            } break;
+            case "vertical": {
+                var width = self.getIndicatorWidth(),
+                    height = self.getIndicatorHeight();
+                if (e.newValue) {
+                    self.setIndicatorWidth(height);
+                    self.setIndicatorHeight(width / 2);
+                } else {
+                    self.setIndicatorWidth(height * 2);
+                    self.setIndicatorHeight(width);
+                }
+            } break;
         }
     },
     add: function (img, index) {
         if (img && img.getView) {
             this.addView(img, NULL, index);
         } else {
-            if (img instanceof ht.ui.drawable.Drawable) {} else {
+            if (img instanceof ht.ui.drawable.Drawable) { } else {
                 img = Default.toDrawable(img);
             }
             var view = new ht.ui.View({
@@ -78,7 +95,7 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
 
         delete self._autoplayTimer;
     },
-    resumeAutoplay: function(fromInteractor) {
+    resumeAutoplay: function (fromInteractor) {
         var self = this;
         if (fromInteractor) {
             if (self._pauseAutoplay === 'fromInteractor') {
@@ -90,18 +107,18 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
         }
         self.iv();
     },
-    pauseAutoplay: function(fromInteractor) {
+    pauseAutoplay: function (fromInteractor) {
         var self = this;
         if (fromInteractor) {
-            self._pauseAutoplay = 'fromInteractor';    
+            self._pauseAutoplay = 'fromInteractor';
         }
         else {
             self._pauseAutoplay = true;
         }
-        
+
         self.iv();
     },
-    stopAnimation: function() {
+    stopAnimation: function () {
         var self = this;
         self._ignoreIndex = true;
 
@@ -111,26 +128,32 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
     },
     startAutoplay: function (interval, targetIndex, immediate) {
         var self = this;
-        if (interval == NULL) interval = self.getInterval();
+        var innerHeight = self.getContentHeight();
+        var innerWidth = self.getContentWidth();
+        var outside = self.isIndicatorOutside();
+        var vertical = self.isVertical();
+        if (outside) {
+            if (vertical) {
+                innerWidth -= 22;
+            } else {
+                innerHeight -= 22;
+            }
+        }
+        if (interval == null) interval = self.getInterval();
         var timerFunc = function () {
-            var width = self.getContentWidth(),
-                height = self.getContentHeight(),
-                children = self.getVisibleChildren(),
+            var children = self.getVisibleChildren(),
                 childrenSize = children.size(),
                 isVertical = self.isVertical(),
-
                 currentIndex = self.getCurrentIndex(),
                 currentView = children.get(currentIndex);
-            if (targetIndex == NULL) {
+            if (targetIndex == null) {
                 targetIndex = currentIndex + 1;
             }
             var nextView = children.get(targetIndex);
-
             if (!nextView) {
                 nextView = children.get(0);
                 targetIndex = 0;
             }
-
             var backwards = true;
             if (targetIndex < currentIndex) {
                 backwards = false;
@@ -142,66 +165,58 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
             else if (currentIndex === 0 && targetIndex === childrenSize - 1) {
                 backwards = false;
             }
-            
             self._animateIndex = currentIndex;
-            self.layoutChild(currentView, 0, 0, width, height);
-            self.layoutChild(nextView, 0, 0, width, height);
-            nextView.getView().style.visibility = 'visible';
-
-            if (!isVertical) {
-                if (backwards) {
-                    nextView.setX(currentView.getX() + currentView.getWidth());
-                    nextView.setY(currentView.getY());
-
-                    var nowX = nextView.getX();
-                    var targetX = currentView.getX();
-
-                    var cNowX = currentView.getX();
-                    var cTargetX = currentView.getX() - currentView.getWidth();
+            if (!self.isCard()) {
+                self.layoutChild(currentView, 0, 0, innerWidth, innerHeight);
+                self.layoutChild(nextView, 0, 0, innerWidth, innerHeight);
+                nextView.getView().style.visibility = 'visible';
+                if (!isVertical) {
+                    if (backwards) {
+                        nextView.setX(currentView.getX() + currentView.getWidth());
+                        nextView.setY(currentView.getY());
+                        var nowX = nextView.getX();
+                        var targetX = currentView.getX();
+                        var cNowX = currentView.getX();
+                        var cTargetX = currentView.getX() - currentView.getWidth();
+                    }
+                    else {
+                        nextView.setX(currentView.getX() - currentView.getWidth());
+                        nextView.setY(currentView.getY());
+                        var nowX = nextView.getX();
+                        var targetX = currentView.getX();
+                        var cNowX = currentView.getX();
+                        var cTargetX = currentView.getX() + currentView.getWidth();
+                    }
+                } else {
+                    if (backwards) {
+                        nextView.setY(currentView.getY() + currentView.getHeight());
+                        nextView.setX(currentView.getX());
+                        var nowY = nextView.getY();
+                        var targetY = currentView.getY();
+                        var cNowY = currentView.getY();
+                        var cTargetY = currentView.getY() - currentView.getHeight();
+                    }
+                    else {
+                        nextView.setY(currentView.getY() - currentView.getHeight());
+                        nextView.setX(currentView.getX());
+                        var nowY = nextView.getY();
+                        var targetY = currentView.getY();
+                        var cNowY = currentView.getY();
+                        var cTargetY = currentView.getY() + currentView.getHeight();
+                    }
                 }
-                else {
-                    nextView.setX(currentView.getX() - currentView.getWidth());
-                    nextView.setY(currentView.getY());
-
-                    var nowX = nextView.getX();
-                    var targetX = currentView.getX();
-
-                    var cNowX = currentView.getX();
-                    var cTargetX = currentView.getX() + currentView.getWidth();
-                }
-            } else {
-                if (backwards) {
-                    nextView.setY(currentView.getY() + currentView.getHeight());
-                    nextView.setX(currentView.getX());
-
-                    var nowY = nextView.getY();
-                    var targetY = currentView.getY();
-
-                    var cNowY = currentView.getY();
-                    var cTargetY = currentView.getY() - currentView.getHeight();
-                }
-                else {
-                    nextView.setY(currentView.getY() - currentView.getHeight());
-                    nextView.setX(currentView.getX());
-
-                    var nowY = nextView.getY();
-                    var targetY = currentView.getY();
-
-                    var cNowY = currentView.getY();
-                    var cTargetY = currentView.getY() + currentView.getHeight();
-                }
-                
             }
-
-            self._animation = Default.startAnim({
-                duration: self.getAutoplay(),
+            self._animation = ht.Default.startAnim({
+                duration: self.isCard() ? 1 : self.getAutoplay(),
                 action: function (v, t) {
-                    if (!isVertical) {
-                        nextView.setX(nowX - (nowX - targetX) * v);
-                        currentView.setX(cNowX - (cNowX - cTargetX) * v);
-                    } else {
-                        nextView.setY(nowY - (nowY - targetY) * v);
-                        currentView.setY(cNowY - (cNowY - cTargetY) * v);
+                    if (!self.isCard()) {
+                        if (!isVertical) {
+                            nextView.setX(nowX - (nowX - targetX) * v);
+                            currentView.setX(cNowX - (cNowX - cTargetX) * v);
+                        } else {
+                            nextView.setY(nowY - (nowY - targetY) * v);
+                            currentView.setY(cNowY - (cNowY - cTargetY) * v);
+                        }
                     }
                 },
                 finishFunc: function () {
@@ -224,43 +239,41 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
     },
 
     figureIndicatorPosition: function (totalWidth, totalHeight, indicatorsWidth, indicatorsHeight, isVertical) {
-        if (!isVertical) {
-            return {
-                x: (totalWidth - indicatorsWidth) / 2,
-                y: totalHeight - 20 - indicatorsHeight
+        var outside = this.isIndicatorOutside();
+        if (outside) {
+            if (!isVertical) {
+                return { x: (totalWidth - indicatorsWidth) / 2, y: totalHeight - indicatorsHeight }
+            } else {
+                return { x: totalWidth - indicatorsWidth, y: (totalHeight - indicatorsHeight) / 2 }
             }
         } else {
-            return {
-                x: totalWidth - 20 - indicatorsWidth,
-                y: (totalHeight - indicatorsHeight) / 2
+            if (!isVertical) {
+                return { x: (totalWidth - indicatorsWidth) / 2, y: totalHeight - 20 - indicatorsHeight }
+            } else {
+                return { x: totalWidth - 20 - indicatorsWidth, y: (totalHeight - indicatorsHeight) / 2 }
             }
         }
     },
     figureControllerPosition: function (width, height, cwidth, cheight, isVertical, type) {
+        var outside = this.isIndicatorOutside();
+        if (outside) {
+            if (!isVertical) {
+                height -= 22;
+            } else {
+                width -= 22;
+            }
+        }
         if (!isVertical) {
             if (type === 'prev') {
-                return {
-                    x: 0,
-                    y: (height - cheight) / 2
-                }
+                return { x: 8, y: (height - cheight) / 2 }
             } else {
-                return {
-                    x: width - cwidth,
-                    y: (height - cheight) / 2
-                }
+                return { x: width - cwidth - 8, y: (height - cheight) / 2 }
             }
-
         } else {
             if (type === 'prev') {
-                return {
-                    x: (width - cheight) / 2,
-                    y: 0
-                }
+                return { x: width / 2 - cwidth, y: -8 }
             } else {
-                return {
-                    x: (width - cheight) / 2,
-                    y: height - cwidth
-                }
+                return { x: width / 2, y: height - cheight - 8 }
             }
         }
     },
@@ -305,7 +318,7 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
                 contentContext.translate(-(x + height / 2), -(y + width));
 
                 drawable.draw(x, y, width, height, NULL, self, contentCanvas);
-                
+
                 contentContext.restore();
                 controllerRects.prev = {
                     x: x, y: y, width: height, height: width
@@ -343,7 +356,7 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
             }
         }
     },
-    controllerHitTest: function(event) {
+    controllerHitTest: function (event) {
         var self = this,
             controllerRects = self._controllerRects;
         if (controllerRects) {
@@ -405,84 +418,102 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
      * @override
      */
     validateImpl: function (x, y, width, height) {
-        var self = this,
-            children = self.getVisibleChildren(),
-            childrenSize = children.size();
+        var self = this, children = self.getVisibleChildren(), childrenSize = children.size();
+        var innerHeight = height;
+        var innerWidth = width;
+        var outside = self.isIndicatorOutside();
+        var vertical = self.isVertical();
+        if (outside) {
+            if (vertical) {
+                innerWidth -= 22;
+            } else {
+                innerHeight -= 22;
+            }
+        }
         if (childrenSize > 0) {
-            var currentIndex = self.getCurrentIndex(),
-                currentView = children.get(currentIndex);
-
+            var currentIndex = self.getCurrentIndex(), currentView = children.get(currentIndex);
+            var lastIndex = (currentIndex - 1 + childrenSize) % childrenSize, lastView = children.get(lastIndex);
+            var nextIndex = (currentIndex + 1) % childrenSize, nextView = children.get(nextIndex);
             var animateIndex = self._animateIndex;
             // 如果动画过程中切换了 currentIndex，立即停止动画并清除动画状态
             if (animateIndex >= 0 && animateIndex !== currentIndex) {
                 self.stopAnimation();
             }
-
             // 动画没有在运行，要设置 children 的 visible
-            if (self._animation == NULL) {
-                currentView.getView().style.visibility = 'visible';
-                self.layoutChild(currentView, 0, 0, width, height);
-                for (var i = 0; i < childrenSize; i++) {
-                    var child = children.get(i);
-                    if (child !== currentView) {
-                        child.getView().style.visibility = 'hidden';
+            if (self._animation == null) {
+                if (self.isCard()) {
+                    var zIndex = self.getZIndex() || 0;
+                    for (var i = 0; i < childrenSize; i++) {
+                        var child = children.get(i);
+                        child.getView().style.visibility = 'visible';
+                        child.getView().style.transition = "transform 0.4s ease-in-out";
+                        if (child === currentView) {
+                            child.getView().style.transform = "translateX(" + calcCardTranslate(self.isLoop() ? processIndex(i, currentIndex, childrenSize) : i, currentIndex, innerWidth) + "px) scale(" + 1 + ")";
+                        } else {
+                            child.getView().style.transform = "translateX(" + calcCardTranslate(self.isLoop() ? processIndex(i, currentIndex, childrenSize) : i, currentIndex, innerWidth) + "px) scale(" + 0.83 + ")";
+                        }
+                        if (child === currentView) {
+                            child.setZIndex(zIndex + 2);
+                        } else if (child === lastView || child === nextView) {
+                            child.setZIndex(zIndex + 1);
+                        } else {
+                            child.setZIndex(zIndex);
+                        }
+                        self.layoutChild(child, 0, 0, innerWidth * 0.5, innerHeight);
+                    }
+                } else {
+                    currentView.getView().style.visibility = 'visible';
+                    self.layoutChild(currentView, 0, 0, innerWidth, innerHeight);
+                    for (var i = 0; i < childrenSize; i++) {
+                        var child = children.get(i);
+                        if (child !== currentView) {
+                            child.getView().style.visibility = 'hidden';
+                        }
+                        child.setZIndex(undefined);
+                        child.getView().style.transition = "";
+                        child.getView().style.transform = "";
                     }
                 }
             }
-
             if (childrenSize > 1) {
                 var autoplay = self.getAutoplay(),
                     loop = self.isLoop();
-
                 if (!self._pauseAutoplay && autoplay > 0 && (loop || currentIndex < childrenSize - 1)) {
-                    if (self._autoplayTimer == NULL && self._animation == NULL) {
+                    if (self._autoplayTimer == null && self._animation == null) {
                         self.startAutoplay();
                     }
                 } else {
-                    if (self._autoplayTimer != NULL) {
+                    if (self._autoplayTimer != null) {
                         // 停止下一个动画(当前动画正常执行完)
                         self.clearAutoplay();
                     }
                 }
             } else {
-                if (self._autoplayTimer != NULL) {
+                if (self._autoplayTimer != null) {
                     self.clearAutoplay();
                 }
             }
-
             self._indicatorRects = [];
-            var contentContext = self.getContentContext(),
-                isVertical = self.isVertical();
+            var contentContext = self.getContentContext(), isVertical = self.isVertical();
             contentContext.clearRect(0, 0, width, height);
             if (self.isIndicatorVisible()) {
-                var indicatorWidth = self.getIndicatorWidth(),
-                    indicatorHeight = self.getIndicatorHeight(),
-                    indicatorGap = self.getIndicatorGap();
-
+                var indicatorWidth = self.getIndicatorWidth(), indicatorHeight = self.getIndicatorHeight(), indicatorGap = self.getIndicatorGap();
                 if (!isVertical) {
                     var indicatorsWidth = childrenSize * indicatorWidth + (childrenSize - 1) * indicatorGap;
                     var pos = self.figureIndicatorPosition(width, height, indicatorsWidth, indicatorHeight, isVertical);
-                    self.drawIndicator(pos.x, pos.y, indicatorWidth, indicatorHeight,
-                        indicatorGap, childrenSize, currentIndex, isVertical);
+                    self.drawIndicator(pos.x, pos.y, indicatorWidth, indicatorHeight, indicatorGap, childrenSize, currentIndex, isVertical);
                 } else {
                     var indicatorsHeight = childrenSize * indicatorHeight + (childrenSize - 1) * indicatorGap;
                     var pos = self.figureIndicatorPosition(width, height, indicatorWidth, indicatorsHeight, isVertical);
-                    self.drawIndicator(pos.x, pos.y, indicatorWidth, indicatorHeight,
-                        indicatorGap, childrenSize, currentIndex, isVertical);
+                    self.drawIndicator(pos.x, pos.y, indicatorWidth, indicatorHeight, indicatorGap, childrenSize, currentIndex, isVertical);
                 }
             }
-
             self._controllerRects = {};
-            if (Default.isTouchable || !self.isAutoHideController() || self._mouseenter) {
+            if (ht.Default.isTouchable || !self.isAutoHideController() || self._mouseenter) {
                 if (self.isControllerVisible()) {
-                    var controllerWidth = self.getControllerWidth(),
-                        controllerHeight = self.getControllerHeight(),
-                        currentController = self.getCurrentController(),
-                        currentControllerState = self.getCurrentControllerState();
-    
+                    var controllerWidth = self.getControllerWidth(), controllerHeight = self.getControllerHeight(), currentController = self.getCurrentController(), currentControllerState = self.getCurrentControllerState();
                     var prevPos = self.figureControllerPosition(width, height, controllerWidth, controllerHeight, isVertical, 'prev');
                     self.drawController(prevPos.x, prevPos.y, controllerWidth, controllerHeight, isVertical, 'prev', currentController === 'prev' ? currentControllerState : 'normal');
-    
                     var nextPos = self.figureControllerPosition(width, height, controllerWidth, controllerHeight, isVertical, 'next');
                     self.drawController(nextPos.x, nextPos.y, controllerWidth, controllerHeight, isVertical, 'next', currentController === 'next' ? currentControllerState : 'normal');
                 }
@@ -523,7 +554,42 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
             activeControllerDrawable: 1,
             'is:autoHideController': 1,
             controllerWidth: 1,
-            controllerHeight: 1
+            controllerHeight: 1,
+
+            "is:indicatorOutside": 1,
+            "is:card": 1,
+            "is:hoverTrigger": 1,
+            "is:pauseOnHover": 1,
         });
+    },
+    getVersion: function () {
+        return "5.0"
     }
 });
+
+function processIndex(index, activeIndex, length) {
+    const lastItemIndex = length - 1
+    const prevItemIndex = activeIndex - 1
+    const nextItemIndex = activeIndex + 1
+    const halfItemIndex = length / 2
+    if (activeIndex === 0 && index === lastItemIndex) {
+        return -1
+    } else if (activeIndex === lastItemIndex && index === 0) {
+        return length
+    } else if (index < prevItemIndex && activeIndex - index >= halfItemIndex) {
+        return length + 1
+    } else if (index > nextItemIndex && index - activeIndex >= halfItemIndex) {
+        return -2
+    }
+    return index
+}
+
+function calcCardTranslate(index, activeIndex, parentWidth) {
+    if (Math.round(Math.abs(index - activeIndex)) <= 1) {
+        return (parentWidth * ((2 - 0.83) * (index - activeIndex) + 1)) / 4
+    } else if (index < activeIndex) {
+        return (-(1 + 0.83) * parentWidth) / 4
+    } else {
+        return ((3 + 0.83) * parentWidth) / 4
+    }
+}
