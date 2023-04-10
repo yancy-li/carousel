@@ -271,9 +271,9 @@ def('ht.ui.Carousel', ht.ui.ViewGroup, {
             }
         } else {
             if (type === 'prev') {
-                return { x: width / 2 - cwidth, y: -8 }
+                return { x: width / 2 - cwidth, y: 8 }
             } else {
-                return { x: width / 2, y: height - cheight - 8 }
+                return { x: width / 2 - 16, y: height - cheight + 4 }
             }
         }
     },
